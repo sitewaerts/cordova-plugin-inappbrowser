@@ -1,0 +1,27 @@
+{
+    "name": "cordova-plugin-inappbrowser-electron",
+    "version": "1.0.0",
+    "description": "Electron Native Support for Cordova InAppBrowser Plugin",
+    "main": "index.js",
+    "keywords": [
+        "cordova",
+        "electron",
+        "inappbrowser",
+        "native"
+    ],
+    "author": "sitewaerts GmbH",
+    "license": "Apache-2.0",
+    "dependencies": {
+        "fs-extra": "^11.1.0",
+        "mime": "^3.0.0",
+        "regexp.escape": "^1.1.0"
+    },
+    "cordova": {
+        "serviceName": "InAppBrowserBackend"
+    },
+    "devDependencies": {
+        "@types/electron": "^1.6.10",
+        "@types/fs-extra": "^11.0.3",
+        "@types/node": "^20.8.8"
+    }
+}

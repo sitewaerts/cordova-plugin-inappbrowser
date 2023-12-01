@@ -33,13 +33,15 @@
         <engine name="cordova" version=">=9.0.0"/>
         <engine name="cordova-android" version=">=9.0.0" />
         <engine name="cordova-ios" version=">=6.0.0" />
+        <engine name="cordova-electron" version=">=4.0.0" />
     </engines>
+
+    <js-module src="www/inappbrowser.js" name="inappbrowser">
+        <clobbers target="cordova.InAppBrowser.open" />
+    </js-module>
 
     <!-- android -->
     <platform name="android">
-        <js-module src="www/inappbrowser.js" name="inappbrowser">
-            <clobbers target="cordova.InAppBrowser.open" />
-        </js-module>
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="InAppBrowser">
                 <param name="android-package" value="org.apache.cordova.inappbrowser.InAppBrowser"/>
@@ -70,9 +72,6 @@
 
     <!-- ios -->
     <platform name="ios">
-        <js-module src="www/inappbrowser.js" name="inappbrowser">
-            <clobbers target="cordova.InAppBrowser.open" />
-        </js-module>
         <config-file target="config.xml" parent="/*">
             <feature name="InAppBrowser">
                 <param name="ios-package" value="CDVWKInAppBrowser" />
@@ -93,11 +92,15 @@
 
     <!-- browser -->
     <platform name="browser">
-        <js-module src="www/inappbrowser.js" name="inappbrowser">
-            <clobbers target="cordova.InAppBrowser.open" />
-        </js-module>
         <js-module src="src/browser/InAppBrowserProxy.js" name="InAppBrowserProxy">
             <runs />
         </js-module>
+    </platform>
+
+    <platform name="electron">
+        <js-module src="src/electron/InAppBrowserProxy.js" name="InAppBrowserProxy">
+            <runs />
+        </js-module>
+        <framework src="src/electron/backend" />
     </platform>
 </plugin>

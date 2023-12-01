@@ -8,21 +8,26 @@
 // TypeScript Version: 2.3
 type channel = "loadstart" | "loadstop" | "loaderror" | "exit" | "message" | "customscheme";
 
+interface InAppBrowserFactory{
+    /**
+     * Opens a URL in a new InAppBrowser instance, the current browser instance, or the system browser.
+     * This is a drop-in replacement for the window.open() function.
+     * @param  url     The URL to load.
+     * @param  target  The target in which to load the URL, an optional parameter that defaults to _self.
+     * @param  options Options for the InAppBrowser. Optional, defaulting to: location=yes.
+     *                 The options string must not contain any blank space, and each feature's
+     *                 name/value pairs must be separated by a comma. Feature names are case-insensitive.
+     */
+    open(url: string, target?: string, options?: string): InAppBrowser;
+
+}
+
 /**
  * The object returned from a call to cordova.InAppBrowser.open.
  * NOTE: The InAppBrowser window behaves like a standard web browser, and can't access Cordova APIs.
  */
 interface InAppBrowser {
 
-    /**
-     * Opens a URL in a new InAppBrowser instance, the current browser instance, or the system browser.
-     * @param  url     The URL to load.
-     * @param  target  The target in which to load the URL, an optional parameter that defaults to _self.
-     * @param  options Options for the InAppBrowser. Optional, defaulting to: location=yes.
-     *                 The options string must not contain any blank space, and each feature's
-     *                 name/value pairs must be separated by a comma. Feature names are case insensitive.
-     */
-    open(url: string, target?: string, options?: string): InAppBrowser;
 
     onloadstart(type: Event): void;
     onloadstop(type: InAppBrowserEvent): void;
@@ -95,15 +100,15 @@ interface InAppBrowserEventListenerObject {
 
 interface InAppBrowserEvent extends Event {
     /** the eventname, either loadstart, loadstop, loaderror, or exit. */
-    type: string;
+    type: channel;
     /** the URL that was loaded. */
     url: string;
     /** the error code, only in the case of loaderror. */
-    code: number;
+    code?: number;
     /** the error message, only in the case of loaderror. */
-    message: string;
+    message?: string;
 }
 
 interface Cordova {
-    InAppBrowser: InAppBrowser;
+    InAppBrowser: InAppBrowserFactory;
 }

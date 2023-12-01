@@ -21,8 +21,31 @@
 
 const modulemapper = require('cordova/modulemapper');
 
-let browserWrap, popup, navigationButtonsDiv, navigationButtonsDivInner, backButton, forwardButton, closeButton;
+const LP = "cordova-plugin-inappbrowser: "
 
+/**
+ * @type {Window | null}
+ */
+let _system;
+
+/**
+ * @type {HTMLDivElement}
+ */
+let browserWrap;
+
+/**
+ * @type {HTMLIFrameElement}
+ */
+let popup;
+
+
+let navigationButtonsDiv, navigationButtonsDivInner, backButton, forwardButton, closeButton;
+
+/**
+ *
+ * @param {HTMLElement | Window} element
+ * @param {(event:any,callbackOptions?:any)=>void} callback
+ */
 function attachNavigationEvents (element, callback) {
     const onError = function () {
         try {
@@ -56,38 +79,61 @@ function attachNavigationEvents (element, callback) {
 }
 
 const IAB = {
-    close: function (win, lose) {
+    close: function () {
         if (browserWrap) {
             // use the "open" function callback so that the exit event is fired properly
-            if (IAB._win) IAB._win({ type: 'exit' });
+            if (IAB._win)
+                IAB._win({type: 'exit'});
 
             browserWrap.parentNode.removeChild(browserWrap);
             browserWrap = null;
             popup = null;
         }
+        else if (_system)
+        {
+            if (IAB._win)
+                IAB._win({type: 'exit'});
+            try
+            {
+                _system.close();
+            }
+            catch(e){
+                console.error(LP + "cannot close _system window", e);
+                // ignore
+            }
+            _system = null;
+        }
+        IAB._win = null;
     },
 
-    show: function (win, lose) {
+    show: function () {
         if (browserWrap) {
             browserWrap.style.display = 'block';
         }
     },
 
-    open: function (win, lose, args) {
-        const strUrl = args[0];
-        const target = args[1];
-        const features = args[2];
+    /**
+     *
+     * @param win
+     * @param lose
+     * @param {string} strUrl
+     * @param {string} [target]
+     * @param {string} [features]
+     */
+    open: function (win, lose, [strUrl, target, features]) {
 
         IAB._win = win;
 
         if (target === '_self' || !target) {
             window.location = strUrl;
         } else if (target === '_system') {
-            modulemapper.getOriginalSymbol(window, 'window.open').call(window, strUrl, '_blank');
+            _system = modulemapper.getOriginalSymbol(window, 'window.open').call(window, strUrl, '_blank', features);
+            attachNavigationEvents(_system, win);
         } else {
             // "_blank" or anything else
             if (!browserWrap) {
                 browserWrap = document.createElement('div');
+                browserWrap.id='cordova-plugin-inappbrowser-browser-wrap'
                 browserWrap.style.position = 'absolute';
                 browserWrap.style.top = '0';
                 browserWrap.style.left = '0';
@@ -122,6 +168,7 @@ const IAB = {
                 popup.style.marginBottom = '-4px';
 
                 navigationButtonsDiv = document.createElement('div');
+                navigationButtonsDiv.id='cordova-plugin-inappbrowser-nav-buttons'
                 navigationButtonsDiv.style.height = '60px';
                 navigationButtonsDiv.style.backgroundColor = '#404040';
                 navigationButtonsDiv.style.zIndex = '999';
@@ -141,18 +188,18 @@ const IAB = {
                 };
 
                 backButton = document.createElement('button');
+                navigationButtonsDiv.id='cordova-plugin-inappbrowser-back-button'
                 backButton.style.width = '40px';
                 backButton.style.height = '40px';
                 backButton.style.borderRadius = '40px';
 
                 backButton.innerHTML = '←';
                 backButton.addEventListener('click', function (e) {
-                    if (popup.canGoBack) {
-                        popup.goBack();
-                    }
+                    popup.contentWindow.history.back()
                 });
 
                 forwardButton = document.createElement('button');
+                navigationButtonsDiv.id='cordova-plugin-inappbrowser-forward-button'
                 forwardButton.style.marginLeft = '20px';
                 forwardButton.style.width = '40px';
                 forwardButton.style.height = '40px';
@@ -160,12 +207,11 @@ const IAB = {
 
                 forwardButton.innerHTML = '→';
                 forwardButton.addEventListener('click', function (e) {
-                    if (popup.canGoForward) {
-                        popup.goForward();
-                    }
+                    popup.contentWindow.history.forward()
                 });
 
                 closeButton = document.createElement('button');
+                navigationButtonsDiv.id='cordova-plugin-inappbrowser-close-button'
                 closeButton.style.marginLeft = '20px';
                 closeButton.style.width = '40px';
                 closeButton.style.height = '40px';
@@ -181,9 +227,9 @@ const IAB = {
                 // iframe navigation is not yet supported
                 backButton.disabled = true;
                 forwardButton.disabled = true;
+                // navigationButtonsDivInner.appendChild(backButton);
+                // navigationButtonsDivInner.appendChild(forwardButton);
 
-                navigationButtonsDivInner.appendChild(backButton);
-                navigationButtonsDivInner.appendChild(forwardButton);
                 navigationButtonsDivInner.appendChild(closeButton);
                 navigationButtonsDiv.appendChild(navigationButtonsDivInner);
 
@@ -199,10 +245,14 @@ const IAB = {
         }
     },
 
-    injectScriptCode: function (win, fail, args) {
-        const code = args[0];
-        const hasCallback = args[1];
-
+    /**
+     *
+     * @param win
+     * @param fail
+     * @param {string} code
+     * @param {boolean} [hasCallback]
+     */
+    injectScriptCode: function (win, fail, [code, hasCallback]) {
         if (browserWrap && popup) {
             try {
                 popup.contentWindow.eval(code);
@@ -210,7 +260,7 @@ const IAB = {
                     win([]);
                 }
             } catch (e) {
-                console.error('Error occured while trying to injectScriptCode: ' + JSON.stringify(e));
+                console.error('Error occurred while trying to injectScriptCode: ' + JSON.stringify(e), e);
             }
         }
     },

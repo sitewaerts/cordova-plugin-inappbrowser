@@ -42,6 +42,7 @@
         _eventHandler: function (event) {
             if (event && event.type in this.channels) {
                 if (event.type === 'beforeload') {
+                    // function pointer passed over to listener, so listener may decide whether page is loaded or not
                     this.channels[event.type].fire(event, this._loadAfterBeforeload);
                 } else {
                     this.channels[event.type].fire(event);
@@ -50,16 +51,28 @@
         },
         _loadAfterBeforeload: function (strUrl) {
             strUrl = urlutil.makeAbsolute(strUrl);
-            exec(null, null, 'InAppBrowser', 'loadAfterBeforeload', [strUrl]);
+            function onError(error){
+                console.error("Cannot loadAfterBeforeload", error);
+            }
+            exec(null, onError, 'InAppBrowser', 'loadAfterBeforeload', [strUrl]);
         },
-        close: function (eventname) {
-            exec(null, null, 'InAppBrowser', 'close', []);
+        close: function () {
+            function onError(error){
+                console.error("Cannot close", error);
+            }
+            exec(null, onError, 'InAppBrowser', 'close', []);
         },
-        show: function (eventname) {
-            exec(null, null, 'InAppBrowser', 'show', []);
+        show: function () {
+            function onError(error){
+                console.error("Cannot show", error);
+            }
+            exec(null, onError, 'InAppBrowser', 'show', []);
         },
-        hide: function (eventname) {
-            exec(null, null, 'InAppBrowser', 'hide', []);
+        hide: function () {
+            function onError(error){
+                console.error("Cannot hide", error);
+            }
+            exec(null, onError, 'InAppBrowser', 'hide', []);
         },
         addEventListener: function (eventname, f) {
             if (eventname in this.channels) {
@@ -73,20 +86,30 @@
         },
 
         executeScript: function (injectDetails, cb) {
+            function onError(error){
+                console.error("Cannot inject script", injectDetails);
+                console.error(error);
+            }
+
             if (injectDetails.code) {
-                exec(cb, null, 'InAppBrowser', 'injectScriptCode', [injectDetails.code, !!cb]);
+                exec(cb, onError, 'InAppBrowser', 'injectScriptCode', [injectDetails.code, !!cb]);
             } else if (injectDetails.file) {
-                exec(cb, null, 'InAppBrowser', 'injectScriptFile', [injectDetails.file, !!cb]);
+                exec(cb, onError, 'InAppBrowser', 'injectScriptFile', [injectDetails.file, !!cb]);
             } else {
                 throw new Error('executeScript requires exactly one of code or file to be specified');
             }
         },
 
         insertCSS: function (injectDetails, cb) {
+            function onError(error){
+                console.error("Cannot inject css", injectDetails);
+                console.error(error);
+            }
+
             if (injectDetails.code) {
-                exec(cb, null, 'InAppBrowser', 'injectStyleCode', [injectDetails.code, !!cb]);
+                exec(cb, onError, 'InAppBrowser', 'injectStyleCode', [injectDetails.code, !!cb]);
             } else if (injectDetails.file) {
-                exec(cb, null, 'InAppBrowser', 'injectStyleFile', [injectDetails.file, !!cb]);
+                exec(cb, onError, 'InAppBrowser', 'injectStyleFile', [injectDetails.file, !!cb]);
             } else {
                 throw new Error('insertCSS requires exactly one of code or file to be specified');
             }
@@ -97,6 +120,14 @@
         }
     };
 
+    /**
+     *
+     * @param {string} strUrl
+     * @param {string | null} [strWindowName] a.k. target
+     * @param {string | null} [strWindowFeatures]
+     * @param {Record<string, (event:any)=>void> | null} [callbacks]
+     * @return {InAppBrowser}
+     */
     module.exports = function (strUrl, strWindowName, strWindowFeatures, callbacks) {
         // Don't catch calls that write to existing frames (e.g. named iframes).
         if (window.frames && window.frames[strWindowName]) {
@@ -108,12 +139,12 @@
         const iab = new InAppBrowser();
 
         callbacks = callbacks || {};
-        for (const callbackName in callbacks) {
-            iab.addEventListener(callbackName, callbacks[callbackName]);
+        for (const eventName in callbacks) {
+            iab.addEventListener(eventName, callbacks[eventName]);
         }
 
-        const cb = function (eventname) {
-            iab._eventHandler(eventname);
+        const cb = function (eventName) {
+            iab._eventHandler(eventName);
         };
 
         strWindowFeatures = strWindowFeatures || '';

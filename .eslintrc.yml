@@ -17,6 +17,8 @@
 
 root: true
 extends: '@cordova/eslint-config/browser'
+globals:
+  cordova: true
 
 overrides:
     - files: [tests/**/*.js]

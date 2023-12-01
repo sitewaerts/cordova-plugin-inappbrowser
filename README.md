@@ -149,11 +149,18 @@ instance, or the system browser.
     - __toolbarposition__: Set to `top` or `bottom` (default is `bottom`). Causes the toolbar to be at the top or bottom of the window.
     - __hidespinner__: Set to `yes` or `no` to change the visibility of the loading indicator (defaults to `no`).
 
+  Electron supports these additional options:
+
+  - __hidden__: set to `yes` to create the browser and load the page, but not show it. The loadstop event fires when loading is complete. Omit or set to `no` (default) to have the browser open and load normally.
+  - __beforeload__: set to enable the `beforeload` event to modify which pages are actually loaded in the browser. Accepted values are `get` to intercept only GET requests, `post` to intercept on POST requests or `yes` to intercept both GET & POST requests. Note that POST requests are not currently supported and will be ignored (if you set `beforeload=post` it will raise an error).
+  - __fullscreen__: Sets whether the InappBrowser BrowserWindow is displayed fullscreen or not. Default value is `no`.
+
 
 ### Supported Platforms
 
 - Android
 - Browser
+- Electron
 - iOS
 
 ### Example
@@ -314,7 +321,7 @@ function messageCallBack(params){
 }
 
 ```
-#### Download event Example
+#### Download event Example (Android only)
 
 Whenever the InAppBrowser receives or locates to a url which leads in downloading a file, the callback assigned to the "download" event is called. The parameter passed to this callback is an object with the the following properties
 
@@ -325,8 +332,7 @@ Whenever the InAppBrowser receives or locates to a url which leads in downloadin
 - **contentLength** _If the link of the file allows to obtain file size then this property holds the file size else it contains int value 0_
 - **mimetype** _The MIME type of the file_
 
-```
-
+```js
 function downloadListener(params){
     var url = params.url;
     var mimetype = params.mimetype;
@@ -339,7 +345,6 @@ function downloadListener(params){
     xhr.send();
 
 }
-
 ```
 
 

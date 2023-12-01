@@ -55,6 +55,8 @@
   "author": "Apache Software Foundation",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@cordova/eslint-config": "^5.0.0"
+    "@cordova/eslint-config": "^5.0.0",
+    "@types/electron": "^1.6.10",
+    "@types/web": "^0.0.123"
   }
 }
