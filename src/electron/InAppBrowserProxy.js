@@ -268,7 +268,7 @@ class HandlerInternal extends Handler
                 if (!kvp)
                     return null;
                 const kvpComps = kvp.split("=");
-                if (!k)
+                if (!kvpComps[0])
                     return null;
                 const k = kvpComps[0].trim().toLowerCase();
                 if (k.length < 1)
