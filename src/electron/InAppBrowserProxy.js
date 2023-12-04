@@ -39,6 +39,7 @@ class Handler
     {
         this.url = url;
         this.target = target;
+        this.features = features;
         this.cb = cb;
     }
 
