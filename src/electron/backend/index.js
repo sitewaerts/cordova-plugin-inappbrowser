@@ -24,12 +24,15 @@ const {shell} = require('electron');
 
 const LP = "cordova-plugin-inappbrowser-backend: "
 
+// separate partition required. otherwise 'webRequest.onBeforeRequest()' would intercept request in main window
+const PARTITION = "inappbrowser";
+
 const EVENTS = {
-    LOAD_START : "loadstart",
-    LOAD_STOP : "loadstop",
-    LOAD_ERROR : "loaderror",
-    BEFORE_LOAD : "beforeload",
-    CLOSE : "close",
+    LOAD_START: "loadstart",
+    LOAD_STOP: "loadstop",
+    LOAD_ERROR: "loaderror",
+    BEFORE_LOAD: "beforeload",
+    CLOSE: "close",
 }
 
 /**
@@ -142,6 +145,12 @@ let _iabWindow;
  */
 let _iabWindowCallbackContext;
 
+/**
+ *
+ * @type {boolean}
+ */
+let _skipOnBefore = false;
+
 // noinspection JSUnusedGlobalSymbols
 const pluginAPI = {
 
@@ -209,7 +218,7 @@ const pluginAPI = {
             webPreferences: {
                 devTools: dev,
                 sandbox: true,
-                // partition: "inappbrowser" // must use same session as parent window. otherwise custom protocol handlers won't be available
+                partition: PARTITION
             }
         });
 
@@ -230,6 +239,19 @@ const pluginAPI = {
 
         if (beforeLoad === 'get' || beforeLoad === 'yes')
         {
+
+            _iabWindow.webContents.session.webRequest.onBeforeRequest((details, callback) =>
+            {
+                if (!_skipOnBefore && details.frame === _iabWindow.webContents.mainFrame && details.method.toLowerCase() === 'get')
+                {
+                    _skipOnBefore = true;
+                    callbackContext.progress({type: EVENTS.BEFORE_LOAD, url: details.url});
+                    callback({cancel: true})
+                    return;
+                }
+                callback({cancel: false});
+
+            });
             _iabWindow.webContents.on('will-navigate', (e) =>
             {
                 // event not fired by webContents.loadURL() or webContents.back()
@@ -287,10 +309,18 @@ const pluginAPI = {
             return callbackContext.error({message: "no window", url});
         if (!url || url.length < 1)
             return callbackContext.error({message: "no url specified", url});
-
+        _skipOnBefore = true;
         loadURLInIABWindow(url).then(
-            callbackContext.success.bind(callbackContext),
-            callbackContext.error.bind(callbackContext)
+            () =>
+            {
+                _skipOnBefore = false;
+                callbackContext.success();
+            },
+            (error) =>
+            {
+                _skipOnBefore = false;
+                callbackContext.error(error);
+            }
         );
     },
 
@@ -433,6 +463,11 @@ const plugin = function (action, args, callbackContext)
         callbackContext.error({message: action + ' failed', cause: e});
     }
     return true;
+}
+
+plugin.configure = (ctx) =>
+{
+    ctx.enableAllSchemesOnPartition(PARTITION);
 }
 
 /**
