@@ -252,15 +252,15 @@ const pluginAPI = {
                 callback({cancel: false});
 
             });
-            _iabWindow.webContents.on('will-navigate', (e) =>
-            {
-                // event not fired by webContents.loadURL() or webContents.back()
-
-                // TODO: detect HTTP-Method (GET / POST)
-                // TODO: handle POST data
-                callbackContext.progress({type: EVENTS.BEFORE_LOAD, url: e.url});
-                e.preventDefault(); // wait for this.loadAfterBeforeload() invocation
-            });
+            // _iabWindow.webContents.on('will-navigate', (e) =>
+            // {
+            //     // event not fired by webContents.loadURL() or webContents.back()
+            //
+            //     // TODO: detect HTTP-Method (GET / POST)
+            //     // TODO: handle POST data
+            //     callbackContext.progress({type: EVENTS.BEFORE_LOAD, url: e.url});
+            //     e.preventDefault(); // wait for this.loadAfterBeforeload() invocation
+            // });
         }
         else
         {
