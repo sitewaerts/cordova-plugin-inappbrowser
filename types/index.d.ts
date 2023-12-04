@@ -6,7 +6,6 @@
 // Copyright (c) Microsoft Open Technologies Inc
 // Licensed under the MIT license.
 // TypeScript Version: 2.3
-type channel = "loadstart" | "loadstop" | "loaderror" | "exit" | "message" | "customscheme";
 
 interface InAppBrowserFactory{
     /**
@@ -28,22 +27,36 @@ interface InAppBrowserFactory{
  */
 interface InAppBrowser {
 
-
-    onloadstart(type: Event): void;
-    onloadstop(type: InAppBrowserEvent): void;
-    onloaderror(type: InAppBrowserEvent): void;
-    onexit(type: InAppBrowserEvent): void;
-    // addEventListener overloads
     /**
      * Adds a listener for an event from the InAppBrowser.
-     * @param type      loadstart: event fires when the InAppBrowser starts to load a URL.
-     *                  loadstop: event fires when the InAppBrowser finishes loading a URL.
-     *                  loaderror: event fires when the InAppBrowser encounters an error when loading a URL.
-     *                  exit: event fires when the InAppBrowser window is closed.
-     * @param callback  the function that executes when the event fires. The function is
-     *                  passed an InAppBrowserEvent object as a parameter.
+     * event fires when the InAppBrowser starts to load a URL.
      */
-    addEventListener(type: channel, callback: InAppBrowserEventListenerOrEventListenerObject): void;
+    addEventListener(type: 'loadstart', callback: InAppBrowserEventListenerOrEventListenerObject): void;
+    removeEventListener(type: 'loadstart', callback: InAppBrowserEventListenerOrEventListenerObject): void;
+    /**
+     * Adds a listener for an event from the InAppBrowser.
+     * event fires when the InAppBrowser finishes loading a URL.
+     */
+    addEventListener(type: 'loadstop', callback: InAppBrowserEventListenerOrEventListenerObject): void;
+    removeEventListener(type: 'loadstop', callback: InAppBrowserEventListenerOrEventListenerObject): void;
+    /**
+     * Adds a listener for an event from the InAppBrowser.
+     * event fires when the InAppBrowser encounters an error when loading a URL.
+     */
+    addEventListener(type: 'loaderror', callback: InAppBrowserEventListenerOrEventListenerObject): void;
+    removeEventListener(type: 'loaderror', callback: InAppBrowserEventListenerOrEventListenerObject): void;
+    /**
+     * Adds a listener for an event from the InAppBrowser.
+     * event fires when the InAppBrowser window is closed.
+     */
+    addEventListener(type: 'exit', callback: InAppBrowserEventListenerOrEventListenerObject): void;
+    removeEventListener(type: 'exit', callback: InAppBrowserEventListenerOrEventListenerObject): void;
+
+    addEventListener(type: 'message', callback: InAppBrowserEventListenerOrEventListenerObject): void;
+    removeEventListener(type: 'message', callback: InAppBrowserEventListenerOrEventListenerObject): void;
+    addEventListener(type: 'customscheme', callback: InAppBrowserEventListenerOrEventListenerObject): void;
+    removeEventListener(type: 'customscheme', callback: InAppBrowserEventListenerOrEventListenerObject): void;
+
     /**
      * Adds a listener for an event from the InAppBrowser.
      * @param type      any custom event that might occur.
@@ -51,27 +64,20 @@ interface InAppBrowser {
      *                  passed an InAppBrowserEvent object as a parameter.
      */
     addEventListener(type: string, callback: InAppBrowserEventListenerOrEventListenerObject): void;
-    // removeEventListener overloads
-    /**
-     * Removes a listener for an event from the InAppBrowser.
-     * @param type      The event to stop listening for.
-     *                  loadstart: event fires when the InAppBrowser starts to load a URL.
-     *                  loadstop: event fires when the InAppBrowser finishes loading a URL.
-     *                  loaderror: event fires when the InAppBrowser encounters an error when loading a URL.
-     *                  exit: event fires when the InAppBrowser window is closed.
-     * @param callback  the function that executes when the event fires. The function is
-     *                  passed an InAppBrowserEvent object as a parameter.
-     */
-    removeEventListener(type: channel, callback: InAppBrowserEventListenerOrEventListenerObject): void;
+    removeEventListener(type: string, callback: InAppBrowserEventListenerOrEventListenerObject): void;
+
     /** Closes the InAppBrowser window. */
     close(): void;
+
     /** Hides the InAppBrowser window. Calling this has no effect if the InAppBrowser was already hidden. */
     hide(): void;
+
     /**
      * Displays an InAppBrowser window that was opened hidden. Calling this has no effect
      * if the InAppBrowser was already visible.
      */
     show(): void;
+
     /**
      * Injects JavaScript code into the InAppBrowser window.
      * @param script    Details of the script to run, specifying either a file or code key.
@@ -82,6 +88,7 @@ interface InAppBrowser {
      *                  or the last expression evaluated.
      */
     executeScript(script: { code: string } | { file: string }, callback: (result: any) => void): void;
+
     /**
      * Injects CSS into the InAppBrowser window.
      * @param css       Details of the script to run, specifying either a file or code key.
@@ -100,7 +107,7 @@ interface InAppBrowserEventListenerObject {
 
 interface InAppBrowserEvent extends Event {
     /** the eventname, either loadstart, loadstop, loaderror, or exit. */
-    type: channel;
+    type: 'loadstart' | 'loadstop' | 'loaderror' | 'exit' | 'message' | 'customscheme';
     /** the URL that was loaded. */
     url: string;
     /** the error code, only in the case of loaderror. */

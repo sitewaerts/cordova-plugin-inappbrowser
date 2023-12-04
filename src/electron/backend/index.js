@@ -114,18 +114,19 @@ function loadURLInIABWindow(url)
 
     return _iabWindow.loadURL(url).then(() =>
     {
-        // did-finish-load not fired for loadURL()
-        _iabWindowCallbackContext.progress({type: EVENTS.LOAD_STOP, url: url});
-    }, (error) =>
+        // did-finish-load already handled
+        //_iabWindowCallbackContext.progress({type: EVENTS.LOAD_STOP, url: url});
+    }, () =>
     {
-        // did-fail-load not fired for loadURL()
-        const message = 'Failed loading ' + url + ": " + (error.message || error);
-        _iabWindowCallbackContext.progress({
-            type: EVENTS.LOAD_ERROR,
-            url: url,
-            message: message,
-            code: error.code || error.status || 0
-        });
+        // did-fail-load already handled
+        // const message = 'Failed loading ' + url + ": " + (error.message || error);
+        // console.error(message, error);
+        // _iabWindowCallbackContext.progress({
+        //     type: EVENTS.LOAD_ERROR,
+        //     url: url,
+        //     message: message,
+        //     code: error.code || error.status || 0
+        // });
     });
 
 }
@@ -208,7 +209,7 @@ const pluginAPI = {
             webPreferences: {
                 devTools: dev,
                 sandbox: true,
-                partition: "inappbrowser"
+                // partition: "inappbrowser" // must use same session as parent window. otherwise custom protocol handlers won't be available
             }
         });
 
@@ -231,6 +232,8 @@ const pluginAPI = {
         {
             _iabWindow.webContents.on('will-navigate', (e) =>
             {
+                // event not fired by webContents.loadURL() or webContents.back()
+
                 // TODO: detect HTTP-Method (GET / POST)
                 // TODO: handle POST data
                 callbackContext.progress({type: EVENTS.BEFORE_LOAD, url: e.url});
@@ -245,9 +248,9 @@ const pluginAPI = {
             });
         }
 
-        _iabWindow.webContents.on('did-finish-load', (e, url) =>
+        _iabWindow.webContents.on('did-finish-load', () =>
         {
-            callbackContext.progress({type: EVENTS.LOAD_STOP, url: url});
+            callbackContext.progress({type: EVENTS.LOAD_STOP, url: _iabWindow.webContents.mainFrame.url});
         });
 
         _iabWindow.webContents.on('did-fail-load', (e, errorCode, errorDescription, validatedURL) =>
