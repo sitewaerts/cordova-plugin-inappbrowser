@@ -201,7 +201,7 @@ const pluginAPI = {
         _iabWindow = new BrowserWindow({
             width: mainWindow.getBounds().width,
             height: mainWindow.getBounds().height,
-            modal: true,
+            modal: !dev, // break point in main window could block processing as we couldn't klick continue there
             parent: mainWindow,
             show: !hidden,
             paintWhenInitiallyHidden: true,
