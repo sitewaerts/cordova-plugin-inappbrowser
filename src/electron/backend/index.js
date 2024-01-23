@@ -256,12 +256,20 @@ const pluginAPI = {
             _skipOnBefore = false;
             _iabWindow.webContents.session.webRequest.onBeforeRequest((details, callback) =>
             {
-                if (!_skipOnBefore && details.frame === _iabWindow.webContents.mainFrame && details.resourceType === 'mainFrame' && details.method.toLowerCase() === 'get')
+                const isMainRequest = details.frame === _iabWindow.webContents.mainFrame && details.resourceType === 'mainFrame';
+
+                if(isMainRequest)
                 {
-                    _skipOnBefore = true;
-                    callbackContext.progress({type: EVENTS.BEFORE_LOAD, url: details.url});
-                    callback({cancel: true})
-                    return;
+                    if (!_skipOnBefore && details.method.toLowerCase() === 'get')
+                    {
+                        _skipOnBefore = true;
+                        callbackContext.progress({type: EVENTS.BEFORE_LOAD, url: details.url});
+                        callback({cancel: true})
+                        return;
+                    }
+
+                    // simulate will-navigate
+                    callbackContext.progress({type: EVENTS.LOAD_START, url: details.url});
                 }
                 callback({cancel: false});
 
