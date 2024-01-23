@@ -198,8 +198,6 @@ const pluginAPI = {
      */
     openInternal: ([url, options], callbackContext) =>
     {
-        _skipOnBefore = false;
-
         if (!url || url.length < 1)
             return callbackContext.error({message: "no url specified", url});
 
@@ -255,10 +253,10 @@ const pluginAPI = {
 
         if (beforeLoad === 'get' || beforeLoad === 'yes')
         {
-
+            _skipOnBefore = false;
             _iabWindow.webContents.session.webRequest.onBeforeRequest((details, callback) =>
             {
-                if (!_skipOnBefore && details.frame === _iabWindow.webContents.mainFrame && details.method.toLowerCase() === 'get')
+                if (!_skipOnBefore && details.frame === _iabWindow.webContents.mainFrame && details.resourceType === 'mainFrame' && details.method.toLowerCase() === 'get')
                 {
                     _skipOnBefore = true;
                     callbackContext.progress({type: EVENTS.BEFORE_LOAD, url: details.url});
