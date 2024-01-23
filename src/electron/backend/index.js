@@ -134,6 +134,22 @@ function loadURLInIABWindow(url)
 
 }
 
+/**
+ *
+ * @param {string | number} raw
+ * @param {number} defaultValue
+ * @returns {number}
+ */
+function getDimValue(raw, defaultValue)
+{
+    if (!raw)
+        return defaultValue;
+    const n = Number(raw);
+    if (isNaN(n))
+        return defaultValue;
+    return n;
+}
+
 
 /**
  * @type {Electron.BrowserWindow}
@@ -182,6 +198,8 @@ const pluginAPI = {
      */
     openInternal: ([url, options], callbackContext) =>
     {
+        _skipOnBefore = false;
+
         if (!url || url.length < 1)
             return callbackContext.error({message: "no url specified", url});
 
@@ -202,14 +220,12 @@ const pluginAPI = {
 
         _iabWindowCallbackContext = callbackContext;
         const mainWindow = getMainWindow();
-
         const dev = mainWindow.webContents.isDevToolsOpened();
-
 
         // TODO: window set icon
         _iabWindow = new BrowserWindow({
-            width: mainWindow.getBounds().width,
-            height: mainWindow.getBounds().height,
+            width: getDimValue(options.width, mainWindow.getBounds().width),
+            height: getDimValue(options.height, mainWindow.getBounds().height),
             modal: !dev, // break point in main window could block processing as we couldn't klick continue there
             parent: mainWindow,
             show: !hidden,
@@ -252,15 +268,6 @@ const pluginAPI = {
                 callback({cancel: false});
 
             });
-            // _iabWindow.webContents.on('will-navigate', (e) =>
-            // {
-            //     // event not fired by webContents.loadURL() or webContents.back()
-            //
-            //     // TODO: detect HTTP-Method (GET / POST)
-            //     // TODO: handle POST data
-            //     callbackContext.progress({type: EVENTS.BEFORE_LOAD, url: e.url});
-            //     e.preventDefault(); // wait for this.loadAfterBeforeload() invocation
-            // });
         }
         else
         {
