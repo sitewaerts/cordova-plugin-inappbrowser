@@ -279,7 +279,8 @@ const pluginAPI = {
         {
             _iabWindow.webContents.on('will-navigate', (e) =>
             {
-                callbackContext.progress({type: EVENTS.LOAD_START, url: e.url});
+                if(e.isMainFrame && e.frame === _iabWindow.webContents.mainFrame)
+                    callbackContext.progress({type: EVENTS.LOAD_START, url: e.url});
             });
         }
 
